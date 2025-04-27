@@ -2,10 +2,57 @@ import ai_highlights
 import os
 import requests
 import json
+import time
+import random
 from datetime import datetime
+
+def retry_with_exponential_backoff(func, max_retries=5, base_delay=1, max_delay=32, jitter=0.1):
+    """
+    Retry a function with exponential backoff
+    
+    Args:
+        func: The function to retry
+        max_retries: Maximum number of retries
+        base_delay: Initial delay between retries in seconds
+        max_delay: Maximum delay between retries in seconds
+        jitter: Random jitter factor to add to delay
+        
+    Returns:
+        The result of the function call, or None if all retries failed
+    """
+    retries = 0
+    delay = base_delay
+    
+    while retries <= max_retries:
+        try:
+            return func()
+        except requests.exceptions.RequestException as e:
+            retries += 1
+            
+            # If we've exhausted all retries or it's a 4xx error (except 429), don't retry
+            # 429 is "Too Many Requests" which is generally worth retrying
+            if retries > max_retries or (400 <= e.response.status_code < 500 and e.response.status_code != 429):
+                print(f"Error after {retries} retries: {e}")
+                return None
+            
+            # Add random jitter to avoid thundering herd problem
+            jitter_amount = random.uniform(-jitter, jitter)
+            actual_delay = min(delay * (1 + jitter_amount), max_delay)
+            
+            print(f"Request failed with error: {e}. Retrying in {actual_delay:.2f} seconds (retry {retries}/{max_retries})")
+            time.sleep(actual_delay)
+            
+            # Exponential backoff
+            delay = min(delay * 2, max_delay)
+    
+    return None
 
 def get_ai_analysis(coins_data):
     """Get AI-powered analysis of the top 3 altcoins using OpenRouter API"""
+    
+    if not coins_data or len(coins_data) < 3:
+        print("Not enough coin data for AI analysis")
+        return "AI analysis unavailable due to insufficient data."
     
     # Format the data for AI analysis
     prompt = "Analyze the following cryptocurrency data and provide a brief investment outlook and sentiment analysis for each coin:\n\n"
@@ -43,17 +90,26 @@ def get_ai_analysis(coins_data):
         ]
     }
     
-    try:
+    # Define the API call function to use with retry mechanism
+    def call_openrouter_api():
         print("Sending request to OpenRouter API...")
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
-            json=payload
+            json=payload,
+            timeout=30  # Add a timeout to prevent hanging
         )
-        response.raise_for_status()
-        result = response.json()
+        response.raise_for_status()  # This will raise an exception for HTTP errors
+        return response.json()
+    
+    try:
+        # Use the retry mechanism
+        result = retry_with_exponential_backoff(call_openrouter_api)
         
-        print(f"API response status: {response.status_code}")
+        if not result:
+            print("All API retry attempts failed")
+            return "AI analysis unavailable after multiple retry attempts."
+        
         print(f"API response data: {json.dumps(result, indent=2)}")
         
         if 'choices' in result and len(result['choices']) > 0:
@@ -62,7 +118,7 @@ def get_ai_analysis(coins_data):
             return analysis
         else:
             print("No choices found in API response")
-            return "AI analysis unavailable at this time."
+            return "AI analysis unavailable due to invalid API response format."
     except Exception as e:
         print(f"Error getting AI analysis: {e}")
         return "AI analysis unavailable due to API error."
@@ -133,7 +189,7 @@ def generate_momentum_backtest(top_coins):
     return backtest
 
 def custom_send_to_discord(content):
-    """Custom implementation to send content to Discord using webhook"""
+    """Custom implementation to send content to Discord using webhook with retry logic"""
     
     print("Using custom Discord webhook sender...")
     webhook_url = ai_highlights.DISCORD_WEBHOOK_URL
@@ -151,13 +207,22 @@ def custom_send_to_discord(content):
             # Add part number indicator for multiple messages
             message = f"[Part {i+1}/{len(chunks)}]\n{chunk}" if len(chunks) > 1 else chunk
             
-            try:
-                response = requests.post(
+            # Define the Discord post function for retry mechanism
+            def post_to_discord():
+                return requests.post(
                     webhook_url,
-                    json={"content": message, "username": "AI Altcoin Highlights"}
+                    json={"content": message, "username": "AI Altcoin Highlights"},
+                    timeout=10
                 )
-                response.raise_for_status()
-                print(f"Sent part {i+1}/{len(chunks)} to Discord")
+            
+            try:
+                # Use retry mechanism
+                response = retry_with_exponential_backoff(post_to_discord)
+                if not response:
+                    print(f"Failed to send part {i+1}/{len(chunks)} to Discord after multiple retries")
+                    success = False
+                else:
+                    print(f"Sent part {i+1}/{len(chunks)} to Discord")
             except Exception as e:
                 print(f"Error sending part {i+1}/{len(chunks)} to Discord: {e}")
                 success = False
@@ -165,12 +230,19 @@ def custom_send_to_discord(content):
         return success
     else:
         # Content is within the size limit, send as a single message
-        try:
-            response = requests.post(
+        def post_to_discord():
+            return requests.post(
                 webhook_url,
-                json={"content": content, "username": "AI Altcoin Highlights"}
+                json={"content": content, "username": "AI Altcoin Highlights"},
+                timeout=10
             )
-            response.raise_for_status()
+        
+        try:
+            # Use retry mechanism
+            response = retry_with_exponential_backoff(post_to_discord)
+            if not response:
+                print("Failed to send message to Discord after multiple retries")
+                return False
             print("Successfully sent message to Discord")
             return True
         except Exception as e:
@@ -216,8 +288,11 @@ def send_insights_to_discord():
     
     print("Sending complete daily summary to Discord...")
     
-    # Try using the original send_to_discord function first
-    success = ai_highlights.send_to_discord(full_content)
+    # Try using the original send_to_discord function with retry mechanism
+    def send_via_original_method():
+        return ai_highlights.send_to_discord(full_content)
+    
+    success = retry_with_exponential_backoff(send_via_original_method, max_retries=3)
     
     # If it fails, try the custom implementation
     if not success:
