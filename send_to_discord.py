@@ -74,7 +74,7 @@ def get_ai_analysis(coins_data):
     
     # Call OpenRouter API with the tngtech/deepseek-r1t-chimera:free model
     headers = {
-        "Authorization": "Bearer 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",
+        "Authorization": "Bearer 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",
         "HTTP-Referer": "daily-altcoin-highlights",
         "X-Title": "Altcoin Analysis",
         "Content-Type": "application/json"
