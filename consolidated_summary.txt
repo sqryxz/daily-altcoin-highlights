@@ -1,0 +1,35 @@
+📈 Daily AI Altcoin Highlights (2025-04-24) 📉
+
+🚀 Top 5 AI Movers (by 24h % Change):
+- FOMO (Fomo-3): Price: $0.0001, 24h Change: 48.55%, 24h Vol: $1,329,082
+- $BILLY (Billy-bets-by-virtuals): Price: $0.0084, 24h Change: 31.84%, 24h Vol: $117,853
+- ⌘ (Nani): Price: $0.0057, 24h Change: 27.05%, 24h Vol: $698
+- KNS (Kenshi-2): Price: $0.0025, 24h Change: 25.50%, 24h Vol: $27,102
+- CX (Cortex-2): Price: $0.0495, 24h Change: 25.00%, 24h Vol: $820,114
+
+📊 Quick Stats (for AI coins):
+- Median 24h Change: -2.23%
+- Worst Performer: MAIAR (-33.97%)
+
+
+🧪 MOMENTUM BACKTEST RESULTS 🧪
+Strategy: Investing $100 in each of the top 3 AI coins by 24h performance
+Backtest period: 7 days
+----------------------------------------
+• FOMO: ROI 34.00%, Profit: $34.00
+• $BILLY: ROI 55.70%, Profit: $55.70
+• ⌘: ROI 7.39%, Profit: $7.39
+----------------------------------------
+Total investment: $300.00
+Total profit/loss: $97.09
+Portfolio ROI: 32.36%
+Average coin ROI: 32.36%
+Bitcoin ROI in same period: 9.41%
+Relative performance: 22.95%
+
+📊 VOLATILITY & PRICE ACTION INSIGHTS:
+• $BILLY rebounded from -14.37% to +43.36% on 2025-04-23
+• ⌘ showed a sharp reversal from +25.17% to -19.87% on 2025-04-21
+• $BILLY showed the highest daily volatility (20.80%), while FOMO was the most stable (13.28%)
+
+📈 Performance charts have been generated.

@@ -1,0 +1,23 @@
+
+===== STATIC TOP 3 AI COINS PORTFOLIO SUMMARY =====
+
+Portfolio of current top 3 AI coins by 24H performance
+Backtest period: Past 90 days
+
+PERFORMANCE METRICS:
+- Equal-Weight Portfolio Return: -68.7%
+- Maximum Drawdown: -82.1%
+- Annualized Volatility: 562.1%
+
+INDIVIDUAL COIN PERFORMANCE:
+- FOMO: -92.2% (Max Drawdown: -97.2%)
+- $BILLY: -19.1% (Max Drawdown: -81.1%)
+- ⌘: -94.8% (Max Drawdown: -93.3%)
+
+COMPARISON WITH DYNAMIC STRATEGY:
+- The static strategy holds the current top 3 coins for the entire period
+- The dynamic strategy rebalances daily to the new top 3 coins
+- The static approach has much lower transaction costs (only 3 trades)
+- The static approach is more exposed to individual coin risks
+
+Performance chart saved as 'static_top3_performance.png'
